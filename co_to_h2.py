@@ -22,8 +22,6 @@ from matplotlib.colors import LogNorm
 
 # general / misc
 import numpy as np
-import pandas as pd
-import sys
 
 # defining helper functions
 def plotmap(data_in, clabel=None, norm=False, cmap='viridis', title=None, savepath=''):
