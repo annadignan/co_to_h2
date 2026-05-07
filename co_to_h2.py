@@ -951,7 +951,7 @@ def calc_m_mol(w1_7p5, w1_15, w3_7p5, w4_15, co,
                gal_sfr, gal_mstar, inc, pa, dist, r_eff):
     
     """ 
-    Calculate total molecular mass in a given region.
+    Calculate total molecular mass for an input image.
 
     Parameters:
     ----------
