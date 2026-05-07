@@ -26,7 +26,7 @@ import pandas as pd
 import sys
 
 # defining helper functions
-def plotmap(data_in, clabel=None, norm=False, cmap='viridis', title=None):
+def plotmap(data_in, clabel=None, norm=False, cmap='viridis', title=None, savepath=''):
 
     """
     Displays an image with customizable options for clarity.
@@ -43,6 +43,8 @@ def plotmap(data_in, clabel=None, norm=False, cmap='viridis', title=None):
         Colormap to use. Default is viridis.
     title : str, optional
         Title to be displayed at top of plot.
+    savepath: str, optional
+        If specified, path for saving resulting figure. 
 
     Returns
     -------
@@ -61,6 +63,8 @@ def plotmap(data_in, clabel=None, norm=False, cmap='viridis', title=None):
         plt.colorbar(label=clabel)
     if clabel==None:
         plt.colorbar()
+    if savepath:
+        plt.savefig(savepath, bbox_inches='tight')
 
 def photometry(data, ras_in, decs_in, radius, wcs_file, method, deg=True, reg_name=None):
 
@@ -208,7 +212,7 @@ class Map:
         if unit is None:
             self.unit = u.dimensionless_unscaled
 
-    def reproject(self, template_file, plot=False, title=None):
+    def reproject(self, template_file, plot=False, title=None, template_unit=None):
         '''Reprojects an input FITS file onto the WCS and size of the 
         input template FITS file.
 
@@ -220,6 +224,8 @@ class Map:
             Whether to plot the output using plotmap(). Default is False.
         title: str, optional
             Title for plotmap.
+        template_unit: str, optional
+            Units for template FITS file.
 
         Returns
         -------
@@ -228,7 +234,10 @@ class Map:
         '''
 
         # create an instance of the input template FITS file
-        template=Map(template_file)
+        if template_unit is None:
+            template=Map(template_file)
+        if template_unit is not None:
+            template=Map(template_file, unit=template_unit)
 
         # remove all axes with length=1 so array is 2D
         data_in = np.squeeze(self.data)
