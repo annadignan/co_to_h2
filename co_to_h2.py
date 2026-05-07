@@ -299,7 +299,7 @@ class Map:
             t[name] = np.array(values).reshape(-1) * unit
         return t[name]
     
-    def calc_gamma(self, method='', gal_sfr = None, gal_Mstar = None,
+    def calc_upsilon(self, method='', gal_sfr = None, gal_Mstar = None,
                I_w1 = None, I_w3 = None, I_w4 = None):
         
         '''Calculates the mass to light ratio based on the prescriptions
@@ -326,7 +326,7 @@ class Map:
         Returns
         -------
         astropy.units.Quantity
-            Mass-to-light ratio (gamma) calculated using the specified method.
+            Mass-to-light ratio (Upsilon) calculated using the specified method.
             Units are solar mass per solar luminosity (M_sun / L_sun).
 
         Notes
@@ -334,9 +334,9 @@ class Map:
         The result is also stored as an attribute of the object, with name
         depending on the method:
 
-        - gam_gswlc
-        - gam_w3w1
-        - gam_w4w1
+        - ups_gswlc
+        - ups_w3w1
+        - ups_w4w1
         '''
 
         # GSWLC specific star formation rate
@@ -362,29 +362,29 @@ class Map:
             c = 0.75
             q=np.log10(I_w4/I_w1).value
 
-        # cap gamma at high and low values per Equation 24 of Leroy (2019)
-        gamma = np.where(q < a, 0.5,
+        # cap upsilon at high and low values per Equation 24 of Leroy (2019)
+        upsilon = np.where(q < a, 0.5,
                 np.where(q > c, 0.2,
                 0.5+b*(q - a)))
         
         if method == 'gswlc':
-            attr_name = 'gam_gswlc'
+            attr_name = 'ups_gswlc'
         if method == 'w3w1':
-            attr_name = 'gam_w3w1'
+            attr_name = 'ups_w3w1'
         if method == 'w4w1':
-            attr_name = 'gam_w4w1'
+            attr_name = 'ups_w4w1'
 
-        setattr(self, attr_name, gamma * u.M_sun / u.L_sun)
+        setattr(self, attr_name, upsilon * u.M_sun / u.L_sun)
 
         return getattr(self, attr_name)
     
-    def calc_sig_star(self, gamma, I_w1, i, method, plot=False):
+    def calc_sig_star(self, upsilon, I_w1, i, method, plot=False):
         '''Calculates the stellar mass surface density based on 
         Equation 2 of Leroy (2021).
 
         Parameters
         ----------
-        gamma: astropy.units.Quantity
+        upsilon: astropy.units.Quantity
             Mass to light ratio in solar mass per solar luminosity.
         I_w1: astropy.units.Quantity
             WISE Band 1 intensity map.
@@ -412,7 +412,7 @@ class Map:
         '''
 
         # Equation 2 from Leroy (2021)
-        sig_star = 330 * (gamma/0.5) * I_w1/(u.MJy/u.sr) * np.cos(np.deg2rad(i))
+        sig_star = 330 * (upsilon/0.5) * I_w1/(u.MJy/u.sr) * np.cos(np.deg2rad(i))
 
         attr_name = f'sigstar_{method}'
 
@@ -1014,22 +1014,22 @@ def calc_m_mol(w1_7p5, w1_15, w3_7p5, w4_15, co,
 
     # make a nested dictionary for the different methods of calculating the mass to light ratio 
     methods = {'gswlc': {'map': reprojs['reproj_w1_7p5'],
-                         'gamma_args': {'gal_sfr': gal_sfr, 'gal_Mstar': gal_mstar},
-                         'gamma_attr': 'gam_gswlc',
+                         'upsilon_args': {'gal_sfr': gal_sfr, 'gal_Mstar': gal_mstar},
+                         'upsilon_attr': 'ups_gswlc',
                          'sig_star_arg': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit,
                          'sig_star_attr': 'sigstar_gswlc'
                          },
                'w3w1': {'map': reprojs['reproj_w1_7p5'],
-                         'gamma_args': {'I_w1': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit, 
+                         'upsilon_args': {'I_w1': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit, 
                                         'I_w3': reprojs['reproj_w3_7p5'].data*reprojs['reproj_w3_7p5'].unit},
-                         'gamma_attr': 'gam_w3w1',
+                         'upsilon_attr': 'ups_w3w1',
                          'sig_star_arg': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit,
                          'sig_star_attr': 'sigstar_w3w1'
                          },
                'w4w1': {'map': reprojs['reproj_w1_15'],
-                         'gamma_args': {'I_w1': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit, 
+                         'upsilon_args': {'I_w1': reprojs['reproj_w1_7p5'].data*reprojs['reproj_w1_7p5'].unit, 
                                         'I_w4': reprojs['reproj_w4_15'].data*reprojs['reproj_w4_15'].unit},
-                         'gamma_attr': 'gam_w4w1',
+                         'upsilon_attr': 'ups_w4w1',
                          'sig_star_arg': reprojs['reproj_w1_15'].data*reprojs['reproj_w1_15'].unit,
                          'sig_star_attr': 'sigstar_w4w1'
                          }
@@ -1038,14 +1038,14 @@ def calc_m_mol(w1_7p5, w1_15, w3_7p5, w4_15, co,
     # initialize empty dir for storing the M/L ratios and stellar mass surface densities
 
     for method, input in methods.items():
-        gam=input['map'].calc_gamma(method=method, **input['gamma_args'])
+        ups=input['map'].calc_upsilon(method=method, **input['upsilon_args'])
         # methods[method][f'{method}_gam'] = gam
 
-        sigstar=input['map'].calc_sig_star(gamma=gam, I_w1=input['sig_star_arg'], i=inc, method=method)
+        sigstar=input['map'].calc_sig_star(upsilon=ups, I_w1=input['sig_star_arg'], i=inc, method=method)
         # methods[method][f'{method}_sigstar'] = sigstar
 
         # add Column for results of calculating mass to light ratio
-        input['map'].add_col(t=tab, name=input['gamma_attr'], values=gam)
+        input['map'].add_col(t=tab, name=input['upsilon_attr'], values=ups)
         # add Column for results of calculating stellar mass surface density
         input['map'].add_col(t=tab, name=input['sig_star_attr'], values=sigstar)
 
