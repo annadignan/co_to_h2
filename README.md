@@ -29,4 +29,13 @@ After downloading co_to_h2.py, you can use the code in a Jupyter notebook by run
 import co_to_h2
 ```
 
-words
+# Dependencies
+* `numpy`
+* `matplotlib`
+* [`astropy`](https://docs.astropy.org/en/stable/install.html#installing-astropy)
+* [`photutils`](https://photutils.readthedocs.io/en/stable/)
+* [`reproject`](https://reproject.readthedocs.io/en/stable/)
+* [`CO_conversion_factor`](https://github.com/astrojysun/COConversionFactor)
+
+# Credits
+If any tools in this repository are used in a publication, please cite the relevant source papers linked above. Also consider giving credit to Adam Leroy and Jiayi Sun for their Python implementations used in this work.  
